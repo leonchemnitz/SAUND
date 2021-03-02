@@ -1,0 +1,8 @@
+/build
+/Builds
+/JuceLibraryCode
+
+/.vscode
+compile_commands.json
+
+*/.cache
