@@ -40,29 +40,13 @@ public:
 
 #define MAX_ORDER 8
 
-  juce::AudioParameterFloat *gain;
-  juce::AudioParameterFloat *c_asym[MAX_ORDER];
+  juce::UndoManager undoManager;
+  juce::AudioProcessorValueTreeState parameters;
 
-  double c1_a;
-  double c2_a;
-  double c3_a;
-  double c4_a;
-  double c5_a;
-  double c6_a;
-  double c7_a;
-  double c8_a;
+  std::atomic<float> *gainParameter = nullptr;
 
-  double c1_b;
-  double c2_b;
-  double c3_b;
-  double c4_b;
-  double c5_b;
-  double c6_b;
-  double c7_b;
-  double c8_b;
-
-  double inputGain;
-  double outputGain;
+  std::atomic<float> *c_asym[MAX_ORDER];
+  std::atomic<float> *c_sym[MAX_ORDER];
 
   Ebu128LoudnessMeter lufsMeter;
 

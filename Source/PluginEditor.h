@@ -1,37 +1,31 @@
-/*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin editor.
-
-  ==============================================================================
-*/
-
 #pragma once
 
 #include "MainComponent.h"
 #include "PluginProcessor.h"
 #include <JuceHeader.h>
 
-
-//==============================================================================
-/**
- */
-class SAUNDAudioProcessorEditor : public juce::AudioProcessorEditor {
+class SAUNDAudioProcessorEditor : public juce::AudioProcessorEditor,
+                                  public juce::ApplicationCommandTarget {
 public:
   SAUNDAudioProcessorEditor(SAUNDAudioProcessor &);
   ~SAUNDAudioProcessorEditor() override;
 
-  //==============================================================================
+  enum Commands { UNDO, REDO };
+
   void paint(juce::Graphics &) override;
   void resized() override;
   void isClipping(bool);
 
-private:
-  MainComponent mainComponent;
+  ApplicationCommandTarget *getNextCommandTarget() override;
+  void getAllCommands(juce::Array<CommandID> &commands) override;
+  void getCommandInfo(CommandID commandID,
+                      ApplicationCommandInfo &result) override;
+  bool perform(const InvocationInfo &info) override;
 
-  // This reference is provided as a quick way for your editor to
-  // access the processor object that created it.
+private:
   SAUNDAudioProcessor &audioProcessor;
+
+  MainComponent mainComponent;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SAUNDAudioProcessorEditor)
 };

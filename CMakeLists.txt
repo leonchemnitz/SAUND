@@ -5,8 +5,9 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 project(SAUND VERSION 0.0.1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_subdirectory("${CMAKE_SOURCE_DIR}/JUCE")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Ob3")
 
+add_subdirectory("${CMAKE_SOURCE_DIR}/JUCE")
 
 juce_add_plugin(SAUND
     # VERSION ...                               # Set this if the plugin version is different to the project version

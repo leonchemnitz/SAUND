@@ -1,97 +1,61 @@
-/*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
-*/
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-//==============================================================================
-SAUNDAudioProcessor::SAUNDAudioProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
-    : AudioProcessor(
-          BusesProperties()
-#if !JucePlugin_IsMidiEffect
-#if !JucePlugin_IsSynth
-              .withInput("Input", juce::AudioChannelSet::stereo(), true)
-#endif
-              .withOutput("Output", juce::AudioChannelSet::stereo(), true)
-#endif
-      )
-#endif
-{
+juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout() {
+  juce::AudioProcessorValueTreeState::ParameterLayout params;
 
-  addParameter(gain = new juce::AudioParameterFloat("gain", // parameterID
-                                                    "Gain", // parameter name
-                                                    0.0f,   // minimum value
-                                                    1.0f,   // maximum value
-                                                    0.5f)); // default value
+  params.add(
+      std::make_unique<juce::AudioParameterFloat>("gain", // parameterID
+                                                  "gain", // parameter name
+                                                  0.0f,   // minimum value
+                                                  1.0f,   // maximum value
+                                                  0.5f)   // default value
+  );
 
   for (int i = 0; i < MAX_ORDER; ++i) {
     juce::String nameAsym = "c" + juce::String(i + 1) + "_asym";
-    addParameter(c_asym[i] =
-                     new juce::AudioParameterFloat(nameAsym, // parameterID
-                                                   nameAsym, // parameter name
-                                                   0.0f,     // minimum value
-                                                   1.0f,     // maximum value
-                                                   0.0f));   // default value
+    params.add(std::make_unique<AudioParameterFloat>(nameAsym, nameAsym, 0.0f,
+                                                     1.0f, 0.0f));
+
+    juce::String nameSym = "c" + juce::String(i + 1) + "_sym";
+    params.add(std::make_unique<AudioParameterFloat>(nameSym, nameSym, 0.0f,
+                                                     1.0f, 0.0f));
   }
 
-  c1_a = 1.0;
-  c2_a = 0;
-  c3_a = 0;
-  c4_a = 0;
-  c5_a = 0;
-  c6_a = 0;
-  c7_a = 0;
-  c8_a = 0;
+  return params;
+}
 
-  c1_b = 1;
-  c2_b = 0;
-  c3_b = 0;
-  c4_b = 0;
-  c5_b = 0;
-  c6_b = 0;
-  c7_b = 0;
-  c8_b = 0;
+SAUNDAudioProcessor::SAUNDAudioProcessor()
+    : AudioProcessor(
+          BusesProperties()
+              .withInput("Input", juce::AudioChannelSet::stereo(), true)
+              .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
+      parameters(*this, &(this->undoManager), juce::Identifier("SAUND"),
+                 createParameterLayout()) {
 
-  inputGain = 1;
-  outputGain = 1;
+  gainParameter = parameters.getRawParameterValue("gain");
+
+  for (int i = 0; i < MAX_ORDER; ++i) {
+    c_asym[i] =
+        parameters.getRawParameterValue("c" + juce::String(i + 1) + "_asym");
+
+    c_sym[i] =
+        parameters.getRawParameterValue("c" + juce::String(i + 1) + "_sym");
+  }
 }
 
 SAUNDAudioProcessor::~SAUNDAudioProcessor() {}
 
-//==============================================================================
 const juce::String SAUNDAudioProcessor::getName() const {
   return JucePlugin_Name;
 }
 
-bool SAUNDAudioProcessor::acceptsMidi() const {
-#if JucePlugin_WantsMidiInput
-  return true;
-#else
-  return false;
-#endif
-}
+bool SAUNDAudioProcessor::acceptsMidi() const { return false; }
 
-bool SAUNDAudioProcessor::producesMidi() const {
-#if JucePlugin_ProducesMidiOutput
-  return true;
-#else
-  return false;
-#endif
-}
+bool SAUNDAudioProcessor::producesMidi() const { return false; }
 
-bool SAUNDAudioProcessor::isMidiEffect() const {
-#if JucePlugin_IsMidiEffect
-  return true;
-#else
-  return false;
-#endif
-}
+bool SAUNDAudioProcessor::isMidiEffect() const { return false; }
 
 double SAUNDAudioProcessor::getTailLengthSeconds() const { return 0.0; }
 
@@ -103,12 +67,14 @@ int SAUNDAudioProcessor::getNumPrograms() {
 
 int SAUNDAudioProcessor::getCurrentProgram() { return 0; }
 
-void SAUNDAudioProcessor::setCurrentProgram(int index) {}
+void SAUNDAudioProcessor::setCurrentProgram(int /*index*/) {}
 
-const juce::String SAUNDAudioProcessor::getProgramName(int index) { return {}; }
+const juce::String SAUNDAudioProcessor::getProgramName(int /*index*/) {
+  return {};
+}
 
-void SAUNDAudioProcessor::changeProgramName(int index,
-                                            const juce::String &newName) {}
+void SAUNDAudioProcessor::changeProgramName(int /*index*/,
+                                            const juce::String & /*newName*/) {}
 
 //==============================================================================
 void SAUNDAudioProcessor::prepareToPlay(double sampleRate,
@@ -149,10 +115,10 @@ bool SAUNDAudioProcessor::isBusesLayoutSupported(
 #endif
 
 void SAUNDAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
-                                       juce::MidiBuffer &midiMessages) {
+                                       juce::MidiBuffer & /*midiMessages*/) {
   juce::ScopedNoDenormals noDenormals;
   auto totalNumInputChannels = getTotalNumInputChannels();
-  auto totalNumOutputChannels = getTotalNumOutputChannels();
+  // auto totalNumOutputChannels = getTotalNumOutputChannels();
 
   auto bufferSize = buffer.getNumSamples();
 
@@ -160,7 +126,7 @@ void SAUNDAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
     auto *channelData = buffer.getWritePointer(channel);
 
     for (int i = 0; i < bufferSize; ++i) {
-      channelData[i] = distort(channelData[i] * inputGain) * outputGain;
+      channelData[i] = distort(channelData[i]) * (*gainParameter);
     }
   }
 
@@ -172,30 +138,14 @@ double SAUNDAudioProcessor::distortAsym(double in) {
   in /= 2;
 
   double out = 0;
-  out += in * c1_a;
+  double coefficientSum = 0;
 
-  in *= in;
-  out += in * c2_a;
+  for (int i = 0; i < MAX_ORDER; ++i) {
+    out += in * *c_asym[i];
+    in *= in;
 
-  in *= in;
-  out += in * c3_a;
-
-  in *= in;
-  out += in * c4_a;
-
-  in *= in;
-  out += in * c5_a;
-
-  in *= in;
-  out += in * c6_a;
-
-  in *= in;
-  out += in * c7_a;
-
-  in *= in;
-  out += in * c8_a;
-
-  double coefficientSum = c1_a + c2_a + c3_a + c4_a + c5_a + c6_a + c7_a + c8_a;
+    coefficientSum += *c_asym[i];
+  }
 
   if (coefficientSum != 0) {
     out /= coefficientSum;
@@ -216,30 +166,14 @@ double SAUNDAudioProcessor::distortSym(double in) {
   in += 1;
 
   double out = 0;
-  out += in * c1_b;
+  double coefficientSum = 0.0;
 
-  in *= in;
-  out += in * c2_b;
+  for (int i = 0; i < MAX_ORDER; ++i) {
+    out += in * *c_sym[i];
+    in *= in;
 
-  in *= in;
-  out += in * c3_b;
-
-  in *= in;
-  out += in * c4_b;
-
-  in *= in;
-  out += in * c5_b;
-
-  in *= in;
-  out += in * c6_b;
-
-  in *= in;
-  out += in * c7_b;
-
-  in *= in;
-  out += in * c8_b;
-
-  double coefficientSum = c1_b + c2_b + c3_b + c4_b + c5_b + c6_b + c7_b + c8_b;
+    coefficientSum += *c_sym[i];
+  }
 
   if (coefficientSum != 0) {
     out /= coefficientSum;
@@ -256,7 +190,7 @@ double SAUNDAudioProcessor::distortSym(double in) {
 
 double SAUNDAudioProcessor::distort(double in) {
   double out = distortAsym(in);
-  out = distortSym(out);
+  // out = distortSym(out);
 
   if (out > 1)
     out = 1;
@@ -274,22 +208,22 @@ juce::AudioProcessorEditor *SAUNDAudioProcessor::createEditor() {
   return new SAUNDAudioProcessorEditor(*this);
 }
 
-//==============================================================================
 void SAUNDAudioProcessor::getStateInformation(juce::MemoryBlock &destData) {
-  // You should use this method to store your parameters in the memory block.
-  // You could do that either as raw data, or use the XML or ValueTree classes
-  // as intermediaries to make it easy to save and load complex data.
+  auto state = parameters.copyState();
+  std::unique_ptr<juce::XmlElement> xml(state.createXml());
+  copyXmlToBinary(*xml, destData);
 }
 
 void SAUNDAudioProcessor::setStateInformation(const void *data,
                                               int sizeInBytes) {
-  // You should use this method to restore your parameters from this memory
-  // block, whose contents will have been created by the getStateInformation()
-  // call.
+  std::unique_ptr<juce::XmlElement> xmlState(
+      getXmlFromBinary(data, sizeInBytes));
+
+  if (xmlState.get() != nullptr)
+    if (xmlState->hasTagName(parameters.state.getType()))
+      parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
 }
 
-//==============================================================================
-// This creates new instances of the plugin..
 juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter() {
   return new SAUNDAudioProcessor();
 }

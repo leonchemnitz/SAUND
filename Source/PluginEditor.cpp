@@ -9,32 +9,49 @@
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
-
 //==============================================================================
 SAUNDAudioProcessorEditor::SAUNDAudioProcessorEditor(SAUNDAudioProcessor &p)
     : AudioProcessorEditor(&p), audioProcessor(p), mainComponent(p) {
-  // Make sure that before the constructor has finished, you've set the
-  // editor's size to whatever you need it to be.
   addAndMakeVisible(mainComponent);
   setSize(1000, 600);
 }
 
 SAUNDAudioProcessorEditor::~SAUNDAudioProcessorEditor() {}
 
-//==============================================================================
-void SAUNDAudioProcessorEditor::paint(juce::Graphics &g) {
-  // (Our component is opaque, so we must completely fill the background with a
-  // solid colour)
-  // g.fillAll (getLookAndFeel().findColour
-  // (juce::ResizableWindow::backgroundColourId));
+void SAUNDAudioProcessorEditor::paint(juce::Graphics & /*g*/) {}
 
-  // g.setColour (juce::Colours::white);
-  // g.setFont (15.0f);
-  // g.drawFittedText ("Hello World!", getLocalBounds(),
-  // juce::Justification::centred, 1);
+void SAUNDAudioProcessorEditor::resized() {}
+
+ApplicationCommandTarget *SAUNDAudioProcessorEditor::getNextCommandTarget() {
+  return findFirstTargetParentComponent();
 }
 
-void SAUNDAudioProcessorEditor::resized() {
-  // This is generally where you'll want to lay out the positions of any
-  // subcomponents in your editor..
+void SAUNDAudioProcessorEditor::getAllCommands(
+    juce::Array<CommandID> &commands) {
+  const CommandID ids[] = {Commands::UNDO, Commands::REDO};
+  commands.addArray(ids, numElementsInArray(ids));
+}
+
+void SAUNDAudioProcessorEditor::getCommandInfo(CommandID commandID,
+                                               ApplicationCommandInfo &result) {
+  switch (commandID) {
+  case Commands::UNDO:
+    result.setInfo("Undo", "Undo last Step", "General", 0);
+    result.addDefaultKeypress('z', ModifierKeys::ctrlModifier);
+    break;
+  case Commands::REDO:
+    result.setInfo("Redo", "Redo last undone Step", "General", 0);
+    result.addDefaultKeypress('y', ModifierKeys::ctrlModifier);
+    break;
+  }
+}
+
+bool SAUNDAudioProcessorEditor::perform(const InvocationInfo &info) {
+  switch (info.commandID) {
+  case Commands::UNDO:
+    return audioProcessor.undoManager.undo();
+  case Commands::REDO:
+    return audioProcessor.undoManager.redo();
+  }
+  return false;
 }
