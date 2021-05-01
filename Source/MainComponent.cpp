@@ -49,6 +49,8 @@ MainComponent::MainComponent(SAUNDAudioProcessor &p)
   addAndMakeVisible(waveformComponent.get());
   waveformComponent->setBounds(750, 380, 200, 200);
 
+
+
   setSize(1000, 600);
 
   startTimerHz(5);
@@ -59,6 +61,64 @@ MainComponent::~MainComponent() {}
 //==============================================================================
 void MainComponent::paint(juce::Graphics &g) {
   g.fillAll(juce::Colours::white);
+  
+  {
+    int width = 32, height = 14;
+    int x = curveComponent->getBounds().getCentreX() - width / 2;
+    int y = curveComponent->getBottom();
+    juce::String text(TRANS("in"));
+    juce::Colour fillColour = juce::Colours::black;
+    
+    g.setColour(fillColour);
+    g.setFont(
+        juce::Font(15.00f, juce::Font::plain).withTypefaceStyle("Regular"));
+    g.drawText(text, x, y, width, height, juce::Justification::centred, true);
+  }
+  
+  {
+    int width = 32, height = 14;
+    int x = curveComponent->getX() - height -2;
+    int y = curveComponent->getBounds().getCentreY() + width / 2;
+    juce::String text(TRANS("out"));
+    juce::Colour fillColour = juce::Colours::black;
+    
+    g.setColour(fillColour);
+    g.setFont(
+        juce::Font(15.00f, juce::Font::plain).withTypefaceStyle("Regular"));
+     g.saveState();
+   g.addTransform(juce::AffineTransform::rotation(-3.1415/2,x,y));
+    g.drawText(text, x, y, width, height, juce::Justification::centred, true);
+    g.restoreState();
+  }
+  
+  {
+    int width = 32, height = 14;
+    int x = waveformComponent->getBounds().getCentreX() - width / 2;
+    int y = waveformComponent->getBottom();
+    juce::String text(TRANS("x"));
+    juce::Colour fillColour = juce::Colours::black;
+    
+    g.setColour(fillColour);
+    g.setFont(
+        juce::Font(15.00f, juce::Font::plain).withTypefaceStyle("Regular"));
+    g.drawText(text, x, y, width, height, juce::Justification::centred, true);
+  }
+
+  {
+    int width = 70, height = 14;
+    int x = waveformComponent->getX() - height -4;
+    int y = waveformComponent->getBounds().getCentreY() + width / 2;
+    juce::String text(TRANS("H(sin(x))"));
+    juce::Colour fillColour = juce::Colours::black;
+    
+    g.setColour(fillColour);
+    g.setFont(
+        juce::Font(15.00f, juce::Font::plain).withTypefaceStyle("Regular"));
+     g.saveState();
+   g.addTransform(juce::AffineTransform::rotation(-3.1415/2,x,y));
+    g.drawText(text, x, y, width, height, juce::Justification::centred, true);
+    g.restoreState();
+  }
 
   {
     int x = 876, y = 16, width = 104, height = 30;

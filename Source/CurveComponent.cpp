@@ -48,7 +48,7 @@ void CurveComponent::paint (juce::Graphics& g)
         double inValue = ((double)xPos / (double)width) * 2 - 1;
         double outValue = p.distort(inValue);
         
-        int yPos = height - ((outValue + 1) / 2) * height;
+        float yPos = height - ((outValue + 1) / 2) * height;
 
         path.lineTo(xPos, yPos);
     }
@@ -61,6 +61,17 @@ void CurveComponent::paint (juce::Graphics& g)
 
     g.drawLine(0, height/2, width, height/2, 1);
     g.drawLine(width/2, 0, width/ 2, height, 1);
+
+
+    g.strokePath(path, juce::PathStrokeType(2.0f));
+
+    float dashPattern[2] ={2,2};
+
+    g.drawDashedLine(juce::Line<float>(0, height/4, width, height/4), dashPattern, 2,1);
+    g.drawDashedLine(juce::Line<float>(0, 3*height/4, width, 3*height/4), dashPattern, 2,1);
+
+    g.drawDashedLine(juce::Line<float>(width/4, 0, width/ 4, height), dashPattern, 2,1);
+    g.drawDashedLine(juce::Line<float>(3*width/4, 0, 3*width/ 4, height), dashPattern, 2,1);
 
 }
 

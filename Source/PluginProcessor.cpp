@@ -1,6 +1,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "SimpleIIRFilter.h"
 
 juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout() {
   juce::AudioProcessorValueTreeState::ParameterLayout params;
@@ -36,12 +37,18 @@ SAUNDAudioProcessor::SAUNDAudioProcessor()
 
   gainParameter = parameters.getRawParameterValue("gain");
 
+for(int i = 0; i< CHANNELS; ++i){
+  remove_dc_filter[i].initialize(REMOVE_DC_FILTER_A, 0);
+}
+
   for (int i = 0; i < MAX_ORDER; ++i) {
     c_asym[i] =
         parameters.getRawParameterValue("c" + juce::String(i + 1) + "_asym");
+    c_asym_filtered[i].initialize(C_FILTER_A, *c_asym[i]);
 
     c_sym[i] =
         parameters.getRawParameterValue("c" + juce::String(i + 1) + "_sym");
+    c_sym_filtered[i].initialize(C_FILTER_A, *c_sym[i]);
   }
 }
 
@@ -81,6 +88,15 @@ void SAUNDAudioProcessor::prepareToPlay(double sampleRate,
                                         int samplesPerBlock) {
   lufsMeter.prepareToPlay(sampleRate, getNumInputChannels(), samplesPerBlock,
                           5);
+
+  for(int i = 0; i < CHANNELS; ++i){
+    remove_dc_filter[i].initialize(REMOVE_DC_FILTER_A, 0);
+  }
+
+  for (int i = 0; i < MAX_ORDER; ++i) {
+    c_asym_filtered[i].initialize(C_FILTER_A, *c_asym[i]);
+    c_sym_filtered[i].initialize(C_FILTER_A, *c_sym[i]);
+  }
 }
 
 void SAUNDAudioProcessor::releaseResources() {
@@ -126,7 +142,21 @@ void SAUNDAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
     auto *channelData = buffer.getWritePointer(channel);
 
     for (int i = 0; i < bufferSize; ++i) {
-      channelData[i] = distort(channelData[i]) * (*gainParameter);
+      int rampsFromClean = 0;
+      double out = distort(channelData[i]) * (*gainParameter);
+
+      out -= remove_dc_filter[channel].update(out);
+
+      if (out > 1.0)
+        out = 1.0;
+
+      if (out < -1.0)
+        out = -1.0;
+
+      if (rampsFromClean != oldRampsFromClean) {
+        oldRampsFromClean = rampsFromClean;
+      }
+      channelData[i] = out;
     }
   }
 
@@ -137,18 +167,21 @@ double SAUNDAudioProcessor::distortAsym(double in) {
   in += 1;
   in /= 2;
 
+  double clean = in;
   double out = 0;
   double coefficientSum = 0;
 
   for (int i = 0; i < MAX_ORDER; ++i) {
-    out += in * *c_asym[i];
+    out += in * c_asym_filtered[i].update(*c_asym[i]);
     in *= in;
 
-    coefficientSum += *c_asym[i];
+    coefficientSum += c_asym_filtered[i].getState();
   }
 
   if (coefficientSum != 0) {
     out /= coefficientSum;
+  } else {
+    out = clean;
   }
 
   out *= 2;
@@ -165,18 +198,21 @@ double SAUNDAudioProcessor::distortSym(double in) {
 
   in += 1;
 
+  double clean = in;
   double out = 0;
   double coefficientSum = 0.0;
 
   for (int i = 0; i < MAX_ORDER; ++i) {
-    out += in * *c_sym[i];
+    out += in * c_sym_filtered[i].update(*c_sym[i]);
     in *= in;
 
-    coefficientSum += *c_sym[i];
+    coefficientSum += c_sym_filtered[i].getState();
   }
 
   if (coefficientSum != 0) {
     out /= coefficientSum;
+  } else {
+    out = clean;
   }
 
   out -= 1;
@@ -189,14 +225,8 @@ double SAUNDAudioProcessor::distortSym(double in) {
 }
 
 double SAUNDAudioProcessor::distort(double in) {
-  double out = distortAsym(in);
-  // out = distortSym(out);
-
-  if (out > 1)
-    out = 1;
-
-  if (out < -1)
-    out = -1;
+  double out = distortSym(in);
+  out = distortAsym(out);
 
   return out;
 }

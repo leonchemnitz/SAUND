@@ -5,7 +5,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 project(SAUND VERSION 0.0.1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Ob3")
+# set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Ob3")
 
 add_subdirectory("${CMAKE_SOURCE_DIR}/JUCE")
 
@@ -33,6 +33,8 @@ target_sources(SAUND
     PRIVATE
         Source/Ebu128LoudnessMeter.cpp
         Source/SecondOrderIIRFilter.cpp
+        Source/SimpleIIRFilter.cpp
+        Source/DistortionProcessor.cpp
         Source/MainComponent.cpp
         Source/CurveComponent.cpp
         Source/WaveformComponent.cpp
