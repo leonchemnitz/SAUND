@@ -13,7 +13,7 @@
 SAUNDAudioProcessorEditor::SAUNDAudioProcessorEditor(SAUNDAudioProcessor &p)
     : AudioProcessorEditor(&p), audioProcessor(p), mainComponent(p) {
   addAndMakeVisible(mainComponent);
-  setSize(1000, 600);
+  setSize(825, 440);
 }
 
 SAUNDAudioProcessorEditor::~SAUNDAudioProcessorEditor() {}

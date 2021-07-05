@@ -4,6 +4,7 @@
 #include "PluginProcessor.h"
 #include "WaveformComponent.h"
 #include <JuceHeader.h>
+#include "SAUNDLookAndFeel.h"
 
 class MainComponent : public juce::Component,
                       private juce::Timer,
@@ -21,6 +22,8 @@ public:
 private:
   SAUNDAudioProcessor &p;
   juce::AudioProcessorValueTreeState &valueTreeState;
+
+  SAUNDLookAndFeel lookAndFeel;
 
   std::unique_ptr<CurveComponent> curveComponent;
   std::unique_ptr<WaveformComponent> waveformComponent;

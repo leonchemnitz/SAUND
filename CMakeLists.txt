@@ -38,6 +38,7 @@ target_sources(SAUND
         Source/MainComponent.cpp
         Source/CurveComponent.cpp
         Source/WaveformComponent.cpp
+        Source/SAUNDLookAndFeel.cpp
         Source/PluginEditor.cpp
         Source/PluginProcessor.cpp)
 
