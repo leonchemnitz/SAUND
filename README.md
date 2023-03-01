@@ -8,6 +8,6 @@ SAUND is a VST Audio-Plugin designed for use in an academic contex.
 
 Contributions are always welcome!
 
-See [contributing guidelines][contributing] for ways to get started.
+See [contributing guidelines](CONTRIBUTING.md) for ways to get started.
 
-Please adhere to this project's [Code of Conduct][codeofconduct].
+Please adhere to this project's [Code of Conduct](codeofconduct).
