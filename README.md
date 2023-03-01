@@ -7,7 +7,7 @@ using symmetric and asymmetric polynomial distortion.
 
 ## General Info
 
-At the moment this project is being maintained by exactly one person, me (Leon Chemnitz). If you have Questions about the project
+At the moment this project is being maintained by exactly one person, me ([Leon Chemnitz](https://github.com/leonchemnitz)). If you have Questions about the project
 or you want to use it for your own research and need assistance, feel free to write me at <leonchemnitz@gmail.com> 🚀
 
 ## Contributing
