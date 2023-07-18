@@ -14,7 +14,7 @@ or you want to use it for your own research and need assistance, feel free to wr
 
 SAUND is compatible with all Digital Audio Workstations (DAW) that support the VST3 standard (i.e. most of them e.g. [Ableton Live](https://www.ableton.com/de/live/), [Reaper](https://www.reaper.fm/), [Cubase](https://www.steinberg.net/de/cubase/), [Pro Tools](https://www.avid.com/de/pro-tools)).
 You can choose to compile SAUND yourself but this requires more in-depth knowledge about C++ and the JUCE framework.
-Alternatively, you can download a pre-compiled version here.
+Alternatively, you can download a pre-compiled version [here](https://github.com/leonchemnitz/SAUND/raw/master/download/SAUND.vst3).
 
 Once you have your SAUND.vst3 file please consult the documentation of your specific DAW on how to install a VST3 plugin
 (the process differs a bit for every DAW but is usually pretty straightforward).
